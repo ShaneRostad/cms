@@ -67,6 +67,13 @@ post "/signin" do
   end
 end
 
+def check_if_logged_in
+  if session[:valid_user] == false || session[:valid_user] == nil
+    session[:message] = "You must be signed in to do that."
+    redirect "/"
+  end
+end
+
 get "/sign-out" do
   session[:valid_user] = false
   session[:message] = "You have been signed out."
@@ -74,18 +81,12 @@ get "/sign-out" do
 end
 
 get "/new" do
-  if session[:valid_user] == false
-    session[:message] = "You must be signed in to do that."
-    redirect "/"
-  end
+  check_if_logged_in
   erb :new_file
 end
 
 post "/new" do
-  if session[:valid_user] == false
-    session[:message] = "You must be signed in to do that."
-    redirect "/"
-  end
+  check_if_logged_in
 
   if params[:document] == ""
     session[:message] = "A name is required"
@@ -111,10 +112,7 @@ get "/:file_name" do
 end
 
 get "/:file_name/edit" do
-  if session[:valid_user] == false
-    session[:message] = "You must be signed in to do that."
-    redirect "/"
-  end
+  check_if_logged_in
 
   file_path = File.join(data_path, params[:file_name])
 
@@ -126,10 +124,7 @@ end
 
 
 post "/:file_name" do
-  if session[:valid_user] == false
-    session[:message] = "You must be signed in to do that."
-    redirect "/"
-  end
+  check_if_logged_in
   file_path = File.join(data_path, params[:file_name])
 
   File.write(file_path, params[:content])
@@ -140,10 +135,7 @@ post "/:file_name" do
 end
 
 get "/:file_name/delete" do
-  if session[:valid_user] == false
-    session[:message] = "You must be signed in to do that."
-    redirect "/"
-  end
+  check_if_logged_in
 
   file_path = File.join(data_path, params[:file_name])
   File.delete(file_path)

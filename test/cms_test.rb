@@ -30,12 +30,8 @@ class CmsTest < Minitest::Test
     end
   end
 
-  def signed_out_session
-    { "rack.session" => { valid_user: true } }
-  end
-
   def admin_session
-    { "rack.session" => { username: "admin" } }
+    { "rack.session" => { valid_user: true } }
   end
 
   def test_index
@@ -105,24 +101,35 @@ class CmsTest < Minitest::Test
     create_document "changes.txt"
 
     post "/changes.txt", {content: "new content"}, admin_session
-
     assert_equal 302, last_response.status
     assert_equal "changes.txt has been updated.", session[:message]
-    #assert_includes last_response.body, "changes.txt has been updated"
 
     get "/changes.txt"
     assert_equal 200, last_response.status
     assert_includes last_response.body, "new content"
   end
 
+  def test_updating_document_signed_out
+    post "/changes.txt", {content: "new content"}
+
+    assert_equal 302, last_response.status
+    assert_equal "You must be signed in to do that.", session[:message]
+  end
+
   def test_new
-    get "/new"
+    get "/new", {}, admin_session
     assert_equal 200, last_response.status
     assert_includes last_response.body, "a new document"
   end
 
-  def test_view_new_document_form
+  def test_new_signed_out
     get "/new"
+    assert_equal 302, last_response.status
+    assert_equal "You must be signed in to do that.", session[:message]
+  end
+
+  def test_view_new_document_form
+    get "/new", {}, admin_session
 
     assert_equal 200, last_response.status
     assert_includes last_response.body, "<form"
@@ -130,26 +137,32 @@ class CmsTest < Minitest::Test
   end
 
   def test_invalid_new_document
-    post "/new", document: ""
+    post "/new", {document: ""}, admin_session
     assert_equal 302, last_response.status
 
     assert_equal "A name is required", session[:message]
   end
 
   def test_new_document_creation
-    post "/new", document: "doc.txt"
+    post "/new", { document: "doc.txt" }, admin_session
     assert_equal 302, last_response.status
     assert_equal "doc.txt was created", session[:message]
   end
 
   def test_delete_document
     create_document "text.txt"
-    get "/text.txt/delete"
+    get "/text.txt/delete", {}, admin_session
     assert_equal 302, last_response.status
     assert_equal "text.txt has been deleted", session[:message]
     get last_response["Location"]
     get "/"
     refute_includes last_response.body, "text.txt"
+  end
+
+  def test_delete_document_signed_out
+    get "/text.txt/delete"
+    assert_equal 302, last_response.status
+    assert_equal "You must be signed in to do that.", session[:message]
   end
 
   def test_signin_page
@@ -179,11 +192,5 @@ class CmsTest < Minitest::Test
 
     get "/sign-out"
     assert_equal "You have been signed out.", session[:message]
-  end
-
-  def test_restricted_access
-    get "/new"
-    get last_response["Location"]
-    assert_equal "You must be signed in to do that.", session[:message]
   end
 end
