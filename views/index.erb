@@ -1,0 +1,16 @@
+<ul>
+  <% @files.each do |file| %>
+    <li>
+      <a href="/<%= file %>"><%= file %></a>
+      <a href="/<%= file %>/edit">edit</a>
+      <a href="/<%= file %>/delete">delete</a>
+    </li>
+  <% end %>
+</ul>
+
+<a href="/new"><p>New Document</p></a>
+<% if session[:valid_user] %>
+<p>Signed-in as: <%= session[:username] %><a href="/sign-out"><p>Sign Out</p></a>
+<% else %>
+<a href="/signin">Sign In</a>
+<% end %>

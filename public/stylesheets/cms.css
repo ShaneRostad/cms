@@ -1,0 +1,9 @@
+body {
+  font-family: 'Open Sans';
+}
+
+.messages {
+  background-color: yellow;
+  font-family: 'Open Sans';
+  padding: 10px;
+}
